@@ -1,3 +1,5 @@
+import createSagaMiddleware from 'redux-saga';
+import { reactReduxFirebase } from 'react-redux-firebase';
 import {
   createStore,
   applyMiddleware,
@@ -5,17 +7,38 @@ import {
 } from 'redux';
 
 import rootReducer from './rootReducer';
-import createSagaMiddleware from 'redux-saga'
-import rootSaga from './rootSaga'
 
-const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ 
-                        || compose;
+import rootSaga from './rootSaga'
+import { 
+  API_KEY,
+  AUTH_DOMAIN,
+  DATABASE_URL,
+  PROJECT_ID,
+  STORAGE_BUCKET
+} from './keys'
+
+const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
+const config = {
+  apiKey: API_KEY,
+  authDomain: AUTH_DOMAIN,
+  databaseURL: DATABASE_URL,
+  projectId: PROJECT_ID,
+  storageBucket: STORAGE_BUCKET
+}
 
 const sagaMiddleware = createSagaMiddleware();
 const configureStore = () => {
   const store = {
     ...createStore(rootReducer, composeEnhancers(
-      applyMiddleware(sagaMiddleware)
+      applyMiddleware(sagaMiddleware), reactReduxFirebase(config, {
+        userProfile: 'users',
+        profileFactory: (userData) => {
+          return {
+            name: userData.displayName,
+            points: 0,
+          }
+        }
+      })
     ))
   };
 
